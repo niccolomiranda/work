@@ -1,0 +1,13 @@
+<script>
+    if (document.addEventListener) {
+        document.addEventListener(‘contextmenu’, function (e) {
+            alert(“Try to find another way.”);
+            e.preventDefault();
+        }, false);
+    } else {
+        document.attachEvent(‘oncontextmenu’, function () {
+            alert(“Try to find another way.”);
+            window.event.returnValue = false;
+        });
+    }
+</script>
