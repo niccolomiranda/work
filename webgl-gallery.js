@@ -1,1 +1,358 @@
-!function(){class t{constructor(t,e,n,i){this.gridSize=t,this.gridColumns=e,this.gridRows=n,this.gridMin=i,this.rects=[],this.currentRects=[{x:0,y:0,w:this.gridColumns,h:this.gridRows}]}splitCurrentRect(){if(this.currentRects.length){const n=this.currentRects.shift(),i=n.w>n.h,o=i?n.w:n.h,r=i?"w":"h",s=i?"x":"y";if(o>2*this.gridMin){const i=(t=this.gridMin,e=o-this.gridMin,Math.floor(Math.random()*(e-t+1))+t),c=Object.assign({},n,{[r]:i}),a=Object.assign({},n,{[s]:n[s]+i,[r]:n[r]-i});this.currentRects.push(c,a)}else this.rects.push(n),this.splitCurrentRect()}var t,e}generateRects(){for(;this.currentRects.length;)this.splitCurrentRect();return this.rects}}const e=document.querySelector(".view");PIXI.Loader.shared.resources;let n,i,o,r,s,c,a,h=0,d=new PIXI.Point,l=new PIXI.Point;const u=50,f=3,w=20;let g,p,I,P,x,m,y,v,M,R,C,X,D,b;function E(){C.forEach((t,e)=>{const o=X[e];!function(t){return t.x*u+R.x<=n&&0<=(t.x+t.w)*u+R.x&&t.y*u+R.y<=i&&0<=(t.y+t.h)*u+R.y}(t)?(t.discovered&&!t.loaded&&(t.discovered=!1,t.controller.abort()),o.alpha>0&&(o.alpha-=.01)):(t.discovered||(t.discovered=!0,function t(e){const n=X[e],i=`https://source.unsplash.com/random/${n.width}x${n.height}`,o=C[e],{signal:r}=o.controller=new AbortController;fetch(i,{signal:r}).then(i=>{const r=i.url.split("?")[0];D[r]?t(e):(D[r]=!0,n.texture=PIXI.Texture.from(i.url),o.loaded=!0)}).catch(()=>{})}(e)),t.loaded&&o.alpha<1&&(o.alpha+=.01))})}function F(t){const{x:e,y:n}=t.data.global;h=1,d.set(e,n),l=s.uPointerDiff.clone()}function S(){h=0}function k(t){const{x:e,y:n}=t.data.global;h&&(c=l.x+(e-d.x),a=l.y+(n-d.y),c=c>0?Math.min(c,v+w):Math.max(c,-(v+m)),a=a>0?Math.min(a,M+w):Math.max(a,-(M+y)))}function z(){n=window.innerWidth,i=window.innerHeight,c=0,a=0,s={uResolution:new PIXI.Point(n,i),uPointerDiff:new PIXI.Point,uPointerDown:h},g=Math.ceil(n/u),p=Math.ceil(i/u),x=new t(u,I=5*g,P=5*p,f),m=Math.ceil(g*u-n),y=Math.ceil(p*u-i),v=I*u/2-g*u/2,M=P*u/2-p*u/2,C=x.generateRects(),X=[],D={},function(){(o=new PIXI.Application({view:e})).renderer.autoDensity=!0,o.renderer.resize(n,i);const t=document.getElementById("stageFragment").textContent,r=new PIXI.Filter(void 0,t,s);o.stage.filters=[r]}(),function(){(r=new PIXI.Sprite).width=n,r.height=i;const t=document.getElementById("backgroundFragment").textContent,e=new PIXI.Filter(void 0,t,s);r.filters=[e],o.stage.addChild(r)}(),R=new PIXI.Container,o.stage.addChild(R),function(){const t=new PIXI.Graphics;t.beginFill(0),C.forEach(e=>{const n=new PIXI.Sprite;n.x=e.x*u,n.y=e.y*u,n.width=e.w*u-w,n.height=e.h*u-w,n.alpha=0,X.push(n),t.drawRect(n.x,n.y,n.width,n.height)}),t.endFill(),R.addChild(t),X.forEach(t=>{R.addChild(t)})}(),o.stage.interactive=!0,o.stage.on("pointerdown",F).on("pointerup",S).on("pointerupoutside",S).on("pointermove",k),o.ticker.add(()=>{s.uPointerDown+=.075*(h-s.uPointerDown),s.uPointerDiff.x+=.2*(c-s.uPointerDiff.x),s.uPointerDiff.y+=.2*(a-s.uPointerDiff.y),R.x=s.uPointerDiff.x-v,R.y=s.uPointerDiff.y-M,E()})}window.addEventListener("resize",function(){b&&clearTimeout(b),b=setTimeout(()=>{o.ticker.stop(),o.stage.off("pointerdown",F).off("pointerup",S).off("pointerupoutside",S).off("pointermove",k),C.forEach(t=>{t.discovered&&!t.loaded&&t.controller.abort()}),z()},200)}),z()}();
+(function() {
+
+  // Class to generate a random masonry layout, using a square grid as base
+  class Grid {
+
+    // The constructor receives all the following parameters:
+    // - gridSize: The size (width and height) for smallest unit size
+    // - gridColumns: Number of columns for the grid (width = gridColumns * gridSize)
+    // - gridRows: Number of rows for the grid (height = gridRows * gridSize)
+    // - gridMin: Min width and height limits for rectangles (in grid units)
+    constructor(gridSize, gridColumns, gridRows, gridMin) {
+      this.gridSize = gridSize
+      this.gridColumns = gridColumns
+      this.gridRows = gridRows
+      this.gridMin = gridMin
+      this.rects = []
+      this.currentRects = [{ x: 0, y: 0, w: this.gridColumns, h: this.gridRows }]
+    }
+
+    // Takes the first rectangle on the list, and divides it in 2 more rectangles if possible
+    splitCurrentRect () {
+      if (this.currentRects.length) {
+        const currentRect = this.currentRects.shift()
+        const cutVertical = currentRect.w > currentRect.h
+        const cutSide = cutVertical ? currentRect.w : currentRect.h
+        const cutSize = cutVertical ? 'w' : 'h'
+        const cutAxis = cutVertical ? 'x' : 'y'
+        if (cutSide > this.gridMin * 2) {
+          const rect1Size = randomInRange(this.gridMin, cutSide - this.gridMin)
+          const rect1 = Object.assign({}, currentRect, { [cutSize]: rect1Size })
+          const rect2 = Object.assign({}, currentRect, { [cutAxis]: currentRect[cutAxis] + rect1Size, [cutSize]: currentRect[cutSize] - rect1Size })
+          this.currentRects.push(rect1, rect2)
+        }
+        else {
+          this.rects.push(currentRect)
+          this.splitCurrentRect()
+        }
+      }
+    }
+
+    // Call `splitCurrentRect` until there is no more rectangles on the list
+    // Then return the list of rectangles
+    generateRects () {
+      while (this.currentRects.length) {
+        this.splitCurrentRect()
+      }
+      return this.rects
+    }
+  }
+
+  // Generate a random integer in the range provided
+  function randomInRange (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  // Get canvas view
+  const view = document.querySelector('.view')
+  // Loaded resources will be here
+  const resources = PIXI.Loader.shared.resources
+  // Target for pointer. If down, value is 1, else value is 0
+  let pointerDownTarget = 0
+  // Useful variables to keep track of the pointer
+  let pointerStart = new PIXI.Point()
+  let pointerDiffStart = new PIXI.Point()
+  let width, height, app, background, uniforms, diffX, diffY
+
+  // Variables and settings for grid
+  const gridSize = 50
+  const gridMin = 3
+  const imagePadding = 20
+  let gridColumnsCount, gridRowsCount, gridColumns, gridRows, grid
+  let widthRest, heightRest, centerX, centerY, container, rects
+  let images, imagesUrls
+
+  // Set dimensions
+  function initDimensions () {
+    width = window.innerWidth
+    height = window.innerHeight
+    diffX = 0
+    diffY = 0
+  }
+
+  // Set initial values for uniforms
+  function initUniforms () {
+    uniforms = {
+      uResolution: new PIXI.Point(width, height),
+      uPointerDiff: new PIXI.Point(),
+      uPointerDown: pointerDownTarget
+    }
+  }
+
+  // Initialize the random grid layout
+  function initGrid () {
+    // Getting columns
+    gridColumnsCount = Math.ceil(width / gridSize)
+    // Getting rows
+    gridRowsCount = Math.ceil(height / gridSize)
+    // Make the grid 5 times bigger than viewport
+    gridColumns = gridColumnsCount * 5
+    gridRows = gridRowsCount * 5
+    // Create a new Grid instance with our settings
+    grid = new Grid(gridSize, gridColumns, gridRows, gridMin)
+    // Calculate the center position for the grid in the viewport
+    widthRest = Math.ceil(gridColumnsCount * gridSize - width)
+    heightRest = Math.ceil(gridRowsCount * gridSize - height)
+    centerX = (gridColumns * gridSize / 2) - (gridColumnsCount * gridSize / 2)
+    centerY = (gridRows * gridSize / 2) - (gridRowsCount * gridSize / 2)
+    // Generate the list of rects
+    rects = grid.generateRects()
+    // For the list of images
+    images = []
+    // For storing the image URL and avoid duplicates
+    imagesUrls = {}
+  }
+
+  // Init the PixiJS Application
+  function initApp () {
+    // Create a PixiJS Application, using the view (canvas) provided
+    app = new PIXI.Application({ view })
+    // Resizes renderer view in CSS pixels to allow for resolutions other than 1
+    app.renderer.autoDensity = true
+    // Resize the view to match viewport dimensions
+    app.renderer.resize(width, height)
+
+    // Set the distortion filter for the entire stage
+    const stageFragmentShader = document.getElementById('stageFragment').textContent
+    const stageFilter = new PIXI.Filter(undefined, stageFragmentShader, uniforms)
+    app.stage.filters = [stageFilter]
+  }
+
+  // Init the gridded background
+  function initBackground () {
+    // Create a new empty Sprite and define its size
+    background = new PIXI.Sprite()
+    background.width = width
+    background.height = height
+    // Get the code for the fragment shader from the loaded resources
+    const backgroundFragmentShader = document.getElementById('backgroundFragment').textContent
+    // Create a new Filter using the fragment shader
+    // We don't need a custom vertex shader, so we set it as `undefined`
+    const backgroundFilter = new PIXI.Filter(undefined, backgroundFragmentShader, uniforms)
+    // Assign the filter to the background Sprite
+    background.filters = [backgroundFilter]
+    // Add the background to the stage
+    app.stage.addChild(background)
+  }
+
+  // Initialize a Container element for solid rectangles and images
+  function initContainer () {
+    container = new PIXI.Container()
+    app.stage.addChild(container)
+  }
+
+  // Load texture for an image, giving its index
+  function loadTextureForImage (index) {
+    // Get image Sprite
+    const image = images[index]
+    // Set the url to get a random image from Unsplash Source, given image dimensions
+    const url = `https://source.unsplash.com/random/${image.width}x${image.height}`
+    // Get the corresponding rect, to store more data needed (it is a normal Object)
+    const rect = rects[index]
+    // Create a new AbortController, to abort fetch if needed
+    const { signal } = rect.controller = new AbortController()
+    // Fetch the image
+    fetch(url, { signal }).then(response => {
+      // Get image URL, and if it was downloaded before, load another image
+      // Otherwise, save image URL and set the texture
+      const id = response.url.split('?')[0]
+      if (imagesUrls[id]) {
+        loadTextureForImage(index)
+      } else {
+        imagesUrls[id] = true
+        image.texture = PIXI.Texture.from(response.url)
+        rect.loaded = true
+      }
+    }).catch(() => {
+      // Catch errors silently, for not showing the following error message if it is aborted:
+      // AbortError: The operation was aborted.
+    })
+  }
+
+  // Add solid rectangles and images
+  function initRectsAndImages () {
+    // Create a new Graphics element to draw solid rectangles
+    const graphics = new PIXI.Graphics()
+    // Select the color for rectangles
+    graphics.beginFill(0x000000)
+    // Loop over each rect in the list
+    rects.forEach(rect => {
+      // Create a new Sprite element for each image
+      const image = new PIXI.Sprite()
+      // Set image's position and size
+      image.x = rect.x * gridSize
+      image.y = rect.y * gridSize
+      image.width = rect.w * gridSize - imagePadding
+      image.height = rect.h * gridSize - imagePadding
+      // Set it's alpha to 0, so it is not visible initially
+      image.alpha = 0
+      // Add image to the list
+      images.push(image)
+      // Draw the rectangle
+      graphics.drawRect(image.x, image.y, image.width, image.height)
+    })
+    // Ends the fill action
+    graphics.endFill()
+    // Add the graphics (with all drawn rects) to the container
+    container.addChild(graphics)
+    // Add all image's Sprites to the container
+    images.forEach(image => {
+      container.addChild(image)
+    })
+  }
+
+  // Check if rects intersects with the viewport
+  // and loads corresponding image
+  function checkRectsAndImages () {
+    // Loop over rects
+    rects.forEach((rect, index) => {
+      // Get corresponding image
+      const image = images[index]
+      // Check if the rect intersects with the viewport
+      if (rectIntersectsWithViewport(rect)) {
+        // If rect just has been discovered
+        // start loading image
+        if (!rect.discovered) {
+          rect.discovered = true
+          loadTextureForImage(index)
+        }
+        // If image is loaded, increase alpha if possible
+        if (rect.loaded && image.alpha < 1) {
+          image.alpha += 0.01
+        }
+      } else { // The rect is not intersecting
+        // If the rect was discovered before, but the
+        // image is not loaded yet, abort the fetch
+        if (rect.discovered && !rect.loaded) {
+          rect.discovered = false
+          rect.controller.abort()
+        }
+        // Decrease alpha if possible
+        if (image.alpha > 0) {
+          image.alpha -= 0.01
+        }
+      }
+    })
+  }
+
+  // Check if a rect intersects the viewport
+  function rectIntersectsWithViewport (rect) {
+    return (
+      rect.x * gridSize + container.x <= width &&
+      0 <= (rect.x + rect.w) * gridSize + container.x &&
+      rect.y * gridSize + container.y <= height &&
+      0 <= (rect.y + rect.h) * gridSize + container.y
+    )
+  }
+
+  // Start listening events
+  function initEvents () {
+    // Make stage interactive, so it can listen to events
+    app.stage.interactive = true
+
+    // Pointer & touch events are normalized into
+    // the `pointer*` events for handling different events
+    app.stage
+      .on('pointerdown', onPointerDown)
+      .on('pointerup', onPointerUp)
+      .on('pointerupoutside', onPointerUp)
+      .on('pointermove', onPointerMove)
+  }
+
+  // On pointer down, save coordinates and set pointerDownTarget
+  function onPointerDown (e) {
+    const { x, y } = e.data.global
+    pointerDownTarget = 1
+    pointerStart.set(x, y)
+    pointerDiffStart = uniforms.uPointerDiff.clone()
+  }
+
+  // On pointer up, set pointerDownTarget
+  function onPointerUp () {
+    pointerDownTarget = 0
+  }
+
+  // On pointer move, calculate coordinates diff
+  function onPointerMove (e) {
+    const { x, y } = e.data.global
+    if (pointerDownTarget) {
+      diffX = pointerDiffStart.x + (x - pointerStart.x)
+      diffY = pointerDiffStart.y + (y - pointerStart.y)
+      diffX = diffX > 0 ? Math.min(diffX, centerX + imagePadding) : Math.max(diffX, -(centerX + widthRest))
+      diffY = diffY > 0 ? Math.min(diffY, centerY + imagePadding) : Math.max(diffY, -(centerY + heightRest))
+    }
+  }
+
+  // Init everything
+  function init () {
+    initDimensions()
+    initUniforms()
+    initGrid()
+    initApp()
+    initBackground()
+    initContainer()
+    initRectsAndImages()
+    initEvents()
+
+    // Animation loop
+    // Code here will be executed on every animation frame
+    app.ticker.add(() => {
+      // Multiply the values by a coefficient to get a smooth animation
+      uniforms.uPointerDown += (pointerDownTarget - uniforms.uPointerDown) * 0.075
+      uniforms.uPointerDiff.x += (diffX - uniforms.uPointerDiff.x) * 0.2
+      uniforms.uPointerDiff.y += (diffY - uniforms.uPointerDiff.y) * 0.2
+      // Set position for the container
+      container.x = uniforms.uPointerDiff.x - centerX
+      container.y = uniforms.uPointerDiff.y - centerY
+      // Check rects and load/cancel images as needded
+      checkRectsAndImages()
+    })
+  }
+
+  // Clean the current Application
+  function clean () {
+    // Stop the current animation
+    app.ticker.stop()
+
+    // Remove event listeners
+    app.stage
+      .off('pointerdown', onPointerDown)
+      .off('pointerup', onPointerUp)
+      .off('pointerupoutside', onPointerUp)
+      .off('pointermove', onPointerMove)
+
+    // Abort all fetch calls in progress
+    rects.forEach(rect => {
+      if (rect.discovered && !rect.loaded) {
+        rect.controller.abort()
+      }
+    })
+  }
+
+  // On resize, reinit the app (clean and init)
+  // But first debounce the calls, so we don't call init too often
+  let resizeTimer
+  function onResize () {
+    if (resizeTimer) clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(() => {
+      clean()
+      init()
+    }, 200)
+  }
+  // Listen to resize event
+  window.addEventListener('resize', onResize)
+
+  // Init the app
+  init()
+
+})()
