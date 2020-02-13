@@ -152,7 +152,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 var scroll = new _custom["default"]({
   "extends": true,
   "native": true,
-  section: document.querySelector('.vs-sections'),
+  section: document.querySelector('.app'),
   sections: document.querySelectorAll('.vs-split')
 });
 scroll.init();
