@@ -152,7 +152,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 var scroll = new _custom["default"]({
   "extends": true,
   "native": true,
-  section: document.querySelector('.app'),
+  section: document.querySelector('.vs-sections'),
   sections: document.querySelectorAll('.vs-split')
 });
 scroll.init();
@@ -224,7 +224,7 @@ function () {
     });
     this.dom = {
       listener: this.options.listener || document.body,
-      section: this.options.section || document.querySelector('.app') || null,
+      section: this.options.section || document.querySelector('.vs-section') || null,
       scrollbar: this.vars["native"] || this.options.noscrollbar ? null : {
         state: {
           clicked: false,
