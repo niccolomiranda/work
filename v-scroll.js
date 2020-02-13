@@ -528,7 +528,7 @@ function () {
     key: "destroy",
     value: function destroy() {
       if (this.vars["native"]) {
-        _domClasses["default"].remove(this.dom.listener, 'body');
+        _domClasses["default"].remove(this.dom.listener, 'is-native-scroll');
 
         this.removeFakeScrollHeight();
       } else {
