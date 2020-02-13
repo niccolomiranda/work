@@ -224,7 +224,7 @@ function () {
     });
     this.dom = {
       listener: this.options.listener || document.body,
-      section: this.options.section || document.querySelector('.vs-section') || null,
+      section: this.options.section || document.querySelector('.app') || null,
       scrollbar: this.vars["native"] || this.options.noscrollbar ? null : {
         state: {
           clicked: false,
