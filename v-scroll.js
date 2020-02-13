@@ -81,6 +81,7 @@ function (_Smooth) {
       this.dom.sections.forEach(function (el, index) {
         return (0, _domCss["default"])(el, {
           'position': 'fixed',
+          'width': '100%',
           'top': _this3.sections[index].top
         });
       });
@@ -527,7 +528,7 @@ function () {
     key: "destroy",
     value: function destroy() {
       if (this.vars["native"]) {
-        _domClasses["default"].remove(this.dom.listener, 'is-native-scroll');
+        _domClasses["default"].remove(this.dom.listener, 'body');
 
         this.removeFakeScrollHeight();
       } else {
